@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +12,9 @@
   "type": "commonjs",
   "dependencies": {
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
-    "qrcode-terminal": "^0.12.0"
+    "qrcode-terminal": "^0.12.0",
+    "baileys-mongodb-library": "latest",
+    "mongoose": "latest"
   }
 }
+
