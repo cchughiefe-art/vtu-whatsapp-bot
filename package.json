@@ -1,20 +1,27 @@
 {
   "name": "vtu-bot-baileys",
   "version": "1.0.0",
-  "description": "",
+  "description": "WhatsApp VTU Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
-  "keywords": [],
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "baileys",
+    "vtu"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "@whiskeysockets/baileys": "^6.6.0",
     "qrcode-terminal": "^0.12.0",
-    "baileys-mongodb-library": "latest",
-    "mongoose": "latest"
+    "baileys-mongodb-library": "^1.1.2",
+    "mongoose": "^8.2.1",
+    "mongodb": "^6.5.0",
+    "pino": "^8.19.0"
   }
 }
 
