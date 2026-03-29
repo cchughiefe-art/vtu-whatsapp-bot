@@ -66,14 +66,36 @@ async function connectToWhatsApp() {
 
     sock.ev.on('creds.update', saveCreds);
 
-    // 6. Simple Ping Command
+        // 6. Main Message Handler
     sock.ev.on('messages.upsert', async m => {
         const msg = m.messages[0];
-        if (!msg.key.fromMe && m.type === 'notify') {
-            const text = msg.message?.conversation || msg.message?.extendedTextMessage?.text;
-            if (text === '.ping') {
-                await sock.sendMessage(msg.key.remoteJid, { text: 'Pong! 🏓' });
-            }
+        if (!msg.message || msg.key.fromMe) return;
+
+        const sender = msg.key.remoteJid;
+        const text = (msg.message.conversation || msg.message.extendedTextMessage?.text || "").toLowerCase();
+
+        const db = client.db("swiftpay_db");
+        const users = db.collection("users");
+
+        let user = await users.findOne({ id: sender });
+
+        // A. Handle New Users (Registration Start)
+        if (!user) {
+            await users.insertOne({ 
+                id: sender, 
+                status: 'waiting_for_name', 
+                balance: 0 
+            });
+            await sock.sendMessage(sender, { 
+                text: "Good day! Welcome to *SwiftPay VTU*, where we offer swift, cheap, and reliable data. 📱\n\nTo get started with your wallet, please reply with your *Full Name*:" 
+            });
+            return;
+        }
+
+        // B. Handle Commands (for registered users)
+        if (text === '.ping') {
+            await sock.sendMessage(sender, { text: 'Pong! 🏓' });
+            return;
         }
     });
 }
