@@ -1,44 +1,36 @@
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const { MongoClient } = require('mongodb');
-const { useMongoDBAuthState } = require('@salismazaya/baileys-mongodb');
 const P = require('pino');
 
 async function connectToWhatsApp() {
-    const mongoClient = new MongoClient(process.env.MONGODB_URI);
-    await mongoClient.connect();
-    
-    const collection = mongoClient.db('whatsapp_bot').collection('auth');
-    const { state, saveCreds } = await useMongoDBAuthState(collection);
+    // Connect to your MongoDB using the variable we just added to Render
+    const client = new MongoClient(process.env.MONGODB_URI);
+    await client.connect();
+    console.log("Connected to MongoDB! 🗄️");
+
+    // For the first run, we will use local auth to get the QR code
+    const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
 
     const sock = makeWASocket({
         auth: state,
-        printQRInTerminal: true,
+        printQRInTerminal: true, // This will show the QR in your Render logs
         logger: P({ level: 'silent' })
     });
 
     sock.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect, qr } = update;
-        if (qr) console.log('Scan this QR Code in Render Logs!');
-        
+        if (qr) {
+            console.log('--- SCAN THE QR CODE BELOW IN YOUR LOGS ---');
+        }
         if (connection === 'close') {
             const shouldReconnect = lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut;
             if (shouldReconnect) connectToWhatsApp();
         } else if (connection === 'open') {
-            console.log('Bot is online and connected! 🚀');
+            console.log('Bot is online! ✅');
         }
     });
 
     sock.ev.on('creds.update', saveCreds);
-
-    sock.ev.on('messages.upsert', async m => {
-        const msg = m.messages[0];
-        if (!msg.key.fromMe && m.type === 'notify') {
-            const text = msg.message?.conversation || msg.message?.extendedTextMessage?.text;
-            if (text === '.ping') {
-                await sock.sendMessage(msg.key.remoteJid, { text: 'Pong! 🏓 Bot is active.' });
-            }
-        }
-    });
 }
 
 connectToWhatsApp();
